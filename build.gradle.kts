@@ -1,0 +1,52 @@
+plugins {
+	java
+	groovy
+	id("org.springframework.boot") version "3.0.2"
+	id("io.spring.dependency-management") version "1.1.0"
+}
+
+group = "com.finalproject"
+version = "0.0.1-SNAPSHOT"
+java.sourceCompatibility = JavaVersion.VERSION_17
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.springframework.boot:spring-boot-starter-validation:3.0.2")
+	implementation("com.sun.activation:jakarta.activation:2.0.1")
+	implementation("javax.xml.bind:jaxb-api:2.2.4")
+	implementation("com.fasterxml.jackson.core:jackson-databind:2.14.2")
+	implementation("org.seleniumhq.selenium:selenium-java:2.41.0")
+	// Logging
+	implementation("org.springframework.boot:spring-boot-starter-log4j2:3.0.2")
+    implementation("org.jetbrains:annotations:20.1.0")
+    compileOnly("org.projectlombok:lombok")
+	developmentOnly("org.springframework.boot:spring-boot-devtools")
+	annotationProcessor("org.projectlombok:lombok")
+	runtimeOnly("org.postgresql:postgresql")
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.security:spring-security-test")
+	testImplementation("org.spockframework:spock-core:2.4-M1-groovy-4.0")
+	testImplementation("org.spockframework:spock-spring:2.4-M1-groovy-4.0")
+	testImplementation("org.apache.groovy:groovy-all:4.0.8")
+	testImplementation("com.h2database:h2:2.1.214")
+
+}
+
+configurations.implementation {
+	exclude (group = "org.springframework.boot", module = "spring-boot-starter-logging")
+}
+
+tasks.withType<Test> {
+	useJUnitPlatform()
+}
+
+tasks {
+	bootJar {
+		launchScript()
+	}
+}
