@@ -6,28 +6,29 @@ import java.util.List;
 import java.util.Map;
 
 public class MeasureParseUtils {
+    // NOTE: The order of these is important
     private static final List<String> COMMON_UNITS = List.of(
-            "g", "oz", "tsp", "tbsp", "cup", "part", "ml", "fl oz"
+            "kg", "g", "lb", "oz", "tsp", "tbsp", "cup", "part", "ml", "fl oz"
     );
     private static final List<String> SINGULAR_UNITS = List.of(
             "slice", "pinch", "dash", "dusting", "piece"
     );
     private static final Map<String, Float> SPECIAL_NUMBERS = Map.of(
-            "½", 0.5F,
+            "½", 0.50F,
             "¼", 0.25F,
             "¾", 0.75F,
-            "⅓", 0.33333F,
-            "⅔", 0.66666F,
-            "⅛", 0.125F,
-            "⅜", 0.375F,
-            "⅕", 0.2F
+            "⅓", 0.34F,
+            "⅔", 0.67F,
+            "⅛", 0.13F,
+            "⅜", 0.36F,
+            "⅕", 0.20F
     );
 
     public static void main (String[] args){
         // This is currently working up to "1kg"
         List<String> testList = List.of(
                 "175g/6oz", "2 medium", "½ tsp", "Pinch", "1 tbsp", "2-3 ml", "1", "8 thin slices", "Dusting",
-                "50ml/2fl oz", "1-2tbsp", "750g piece", "1kg", "1.5kg", "1/2 cup", "1/2 lb", "1/4 lb", "Juice of 1",
+                "50ml/2fl oz", "1-2tbsp", "750g piece", "1kg", "1.5kg", " 1/2cup", "1/2 lb", "1/4 lb", "Juice of 1",
                 "Grated Zest of 2", "1/4", "1/8 teaspoon"
         );
         // need to be sure to trim the input, and toLower
@@ -36,7 +37,7 @@ public class MeasureParseUtils {
 //            parseMeasurement(testString);
 //        }
 
-        parseMeasurement(testList.get(11));
+        parseMeasurement(testList.get(20));
     }
 
     public static Measurements parseMeasurement(String measurement) {
@@ -52,22 +53,43 @@ public class MeasureParseUtils {
         else if (hasDigit(measurement)) {
             // case that two measurements are provided
             if (hasSlash(measurement)) {
-                unitArray = measurement.split("/");
+                String[] tempArray = measurement.split("/");
+                if (!hasDigit(tempArray[0]) || !hasDigit(tempArray[1])){
+                    unitArray = tempArray;
+                } else {
+                    unitArray[0] = measurement;
+                }
             } else {
                 unitArray[0] = measurement;
             }
-
+            boolean skipUnit = false;
             if (hasSpace(measurement) && !measurement.contains("fl oz")) {
                 String[] measureArr = measurement.split(" ");
                 if (hasDash(measureArr[0])) {
                     quantity = splitTheDash(measureArr[0]);
+                } else if (hasSlash(measureArr[0])) {
+                    String[] fracArr = measureArr[0].split("/");
+                    quantity = Float.parseFloat(fracArr[0]) / Float.parseFloat(fracArr[1]);
+                } else if (measureArr.length > 2) {
+                    // Pick the number out of the junk
+                    for (String str : measureArr){
+                        if (hasDigit(str)){
+                            quantity = Float.parseFloat(str);
+                            unit = getUnitOfSizeTwoPlusSpecial(measureArr);
+                            skipUnit = true;
+                            break;
+                        }
+                    }
                 } else {
                     quantity = Float.valueOf(measureArr[0]);
                 }
-                if(measureArr.length ==2){
-                    unit = measureArr[1];
-                } else{
-                    unit = getUnitOfSizeTwoPlus(measureArr);
+
+                if (!skipUnit) {
+                    if (measureArr.length == 2) {
+                        unit = measureArr[1];
+                    } else {
+                        unit = getUnitOfSizeTwoPlus(measureArr);
+                    }
                 }
             } else {
                 boolean containsUnit = false;
@@ -78,8 +100,10 @@ public class MeasureParseUtils {
                         String strQuantity = unitArray[0].substring(0, foundIndex);
                         if (!hasSpace(measurement) && hasDash(measurement)) {
                             quantity = splitTheDash(strQuantity);
-                        }
-                        else {
+                        } else if (hasSlash(strQuantity)) {
+                            String[] fracArr = strQuantity.split("/");
+                            quantity = Float.parseFloat(fracArr[0]) / Float.parseFloat(fracArr[1]);
+                        }  else {
                             quantity = Float.valueOf(strQuantity);
                         }
                         unit = unitArray[0].substring(foundIndex);
@@ -89,7 +113,12 @@ public class MeasureParseUtils {
 
                 if (!containsUnit) {
                     // assume whole thing is quantity
-                    quantity = Float.valueOf(measurement);
+                    if (hasSlash(measurement)) {
+                        String[] fracArr = measurement.split("/");
+                        quantity = Float.parseFloat(fracArr[0]) / Float.parseFloat(fracArr[1]);
+                    } else {
+                        quantity = Float.valueOf(measurement);
+                    }
                 }
             }
 
@@ -128,6 +157,16 @@ public class MeasureParseUtils {
         StringBuilder returnString = new StringBuilder();
         for (int i = 1; i < arr.length; i++){
             returnString.append(arr[i]).append(" ");
+        }
+        return returnString.toString().trim();
+    }
+
+    public static String getUnitOfSizeTwoPlusSpecial(String[] arr){
+        StringBuilder returnString = new StringBuilder();
+        for (int i = 0; i < arr.length - 1; i++){
+            if (!arr[i].equals("of")) {
+                returnString.append(arr[i]).append(" ");
+            }
         }
         return returnString.toString().trim();
     }
