@@ -6,10 +6,12 @@ import com.finalproject.adephagia.dao.Recipe;
 import com.finalproject.adephagia.dao.RecipeItem;
 import com.finalproject.adephagia.dto.IngestionItem;
 import com.finalproject.adephagia.dto.InitialRequestItem;
+import com.finalproject.adephagia.dto.Measurements;
 import com.finalproject.adephagia.repository.FoodItemRepository;
 import com.finalproject.adephagia.repository.RecipeItemRepository;
 import com.finalproject.adephagia.repository.RecipeRepository;
 import com.finalproject.adephagia.util.FoodItemBuilder;
+import com.finalproject.adephagia.util.MeasureParseUtils;
 import com.finalproject.adephagia.util.RecipeBuilder;
 import com.finalproject.adephagia.util.RecipeItemBuilder;
 import org.openqa.selenium.By;
@@ -37,9 +39,6 @@ public class IngestionService {
     );
 
     private final String SEARCH_CONSTANT = "Picture of raw ";
-    private final List<String> COMMON_UNITS = List.of(
-            "g", "oz", "tsp", "tbsp", "cup", "cups", "part", "parts", "ml", "fl oz", "dash", "Dash", ""
-    );
     public static final String consumptionUrl = "https://www.themealdb.com/api/json/v1/1/search.php?f=";
 
     public IngestionService(RecipeRepository recipeRepository, RecipeItemRepository recipeItemRepository,
@@ -94,11 +93,10 @@ public class IngestionService {
             try {
                 String ingredientName = (String) ingestionItem.getClass()
                         .getDeclaredField("strIngredient" + i).get(ingestionItem);
-                // Optionally create a new food item
                 if (ingredientName != null && !ingredientName.equals("")) {
                     Optional<FoodItem> item = foodItemRepository.findFoodItemsByName(ingredientName);
-                    FoodItem savedItem = null;
-                    // If the item does not exist
+                    FoodItem savedItem;
+                    // If the item does not exist create a new food item
                     if (item.isEmpty()){
                         // Create Food Item
                         FoodItem foodItem = new FoodItemBuilder()
@@ -116,30 +114,12 @@ public class IngestionService {
                     // Get the Measure
                     String ingredientMeasure = (String) ingestionItem.getClass()
                             .getDeclaredField("strMeasure" + i).get(ingestionItem);
-                    String ingredientUnit = "";
-                    String ingredientQuantity = "";
-                    //1. try a split on the /
-                    String[] ing = ingredientMeasure.split("/");
-                    // TODO: Check to see if it contains a number and if not assume to quantity
-                    // Note: If the unit is "piece" assume quantity 1
-                    if (ing.length == 2) {
-                        // TODO: Figure a way to split the unit from the measure
-                    } else {
-                        //2. if it didn't split try it on space
-                        // Might need to change this to split on the first space, not all spaces
-                        String[] ing2 = ingredientMeasure.split(" ");
-                        if (ing2.length == 2) {
-                            ingredientUnit = ing2[1];
-                            ingredientQuantity = ing2[0];
-                        } else {
-                            //3. If that didn't work, assume no unit and the whole value is the quantity
-                            ingredientQuantity = ingredientMeasure;
-                        }
-                    }
+
+                    Measurements measurements = MeasureParseUtils.parseMeasurement(ingredientMeasure);
                     //create the recipe item and associate it with the recipe
                     RecipeItem recipeItem = new RecipeItemBuilder().foodItem(savedItem)
-                            .recipe(recipe).measurementUnit(ingredientUnit).quantity(Float.valueOf(ingredientQuantity))
-                            .build();
+                            .recipe(recipe).measurementUnit(measurements.getUnit())
+                            .quantity(measurements.getQuantity()).build();
                     // save the item
                     recipeItemRepository.save(recipeItem);
                 }
