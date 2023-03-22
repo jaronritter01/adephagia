@@ -64,15 +64,16 @@ public class IngestionService {
                 createAndSaveFoodItems(recipe, recipeToBeSaved);
 
                 // save recipe
-                recipeRepository.save(recipeToBeSaved);
+                //recipeRepository.save(recipeToBeSaved);
             });
         });
     }
 
     private void findPicAndDescription(String ingredientName, FoodItem foodItem) {
-        System.setProperty("webdriver.chrome.driver","src\\main\\java\\com\\finalproject\\adephagia\\drivers\\chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver", "src\\main\\java\\com\\finalproject\\adephagia\\drivers\\chromedriver.exe");
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--headless");
         WebDriver driver = new ChromeDriver(options);
         // Open Google
         driver.get("https://www.google.com");
@@ -82,6 +83,7 @@ public class IngestionService {
         // Click Images
         driver.findElement(By.xpath("//*[text()='Images']")).click();
         String src = driver.findElement(By.cssSelector("div.islrc img")).getAttribute("src");
+        System.out.println(src);
         // Close the driver
         driver.quit();
         //Set the url
@@ -94,6 +96,8 @@ public class IngestionService {
                 String ingredientName = (String) ingestionItem.getClass()
                         .getDeclaredField("strIngredient" + i).get(ingestionItem);
                 if (ingredientName != null && !ingredientName.equals("")) {
+                    ingredientName = ingredientName.toLowerCase();
+                    System.out.println(ingredientName);
                     Optional<FoodItem> item = foodItemRepository.findFoodItemsByName(ingredientName);
                     FoodItem savedItem;
                     // If the item does not exist create a new food item
@@ -104,9 +108,10 @@ public class IngestionService {
                                 .reusable(true)
                                 .build();
                         // Find a pic and description
-                        findPicAndDescription(ingredientName, foodItem);
+                        //findPicAndDescription(ingredientName, foodItem);
                         //save the item
-                        savedItem = foodItemRepository.save(foodItem);
+                        //savedItem = foodItemRepository.save(foodItem);
+                        savedItem = foodItem;
                     } else {
                         // set the item
                         savedItem = item.get();
@@ -114,14 +119,18 @@ public class IngestionService {
                     // Get the Measure
                     String ingredientMeasure = (String) ingestionItem.getClass()
                             .getDeclaredField("strMeasure" + i).get(ingestionItem);
-
-                    Measurements measurements = MeasureParseUtils.parseMeasurement(ingredientMeasure);
-                    //create the recipe item and associate it with the recipe
-                    RecipeItem recipeItem = new RecipeItemBuilder().foodItem(savedItem)
-                            .recipe(recipe).measurementUnit(measurements.getUnit())
-                            .quantity(measurements.getQuantity()).build();
+                    try {
+                        Measurements measurements = MeasureParseUtils.parseMeasurement(ingredientMeasure);
+                        //create the recipe item and associate it with the recipe
+                        RecipeItem recipeItem = new RecipeItemBuilder().foodItem(savedItem)
+                                .recipe(recipe).measurementUnit(measurements.getUnit())
+                                .quantity(measurements.getQuantity()).build();
+                    } catch (Exception e){
+                        System.out.printf("Error: Measure: %s%n", ingredientMeasure);
+                        e.printStackTrace();
+                    }
                     // save the item
-                    recipeItemRepository.save(recipeItem);
+                    //recipeItemRepository.save(recipeItem);
                 }
             } catch (Exception e){
                 e.printStackTrace();
