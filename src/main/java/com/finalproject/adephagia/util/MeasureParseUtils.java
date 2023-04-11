@@ -8,10 +8,13 @@ import java.util.Map;
 public class MeasureParseUtils {
     // NOTE: The order of these is important
     private static final List<String> COMMON_UNITS = List.of(
-            "kg", "g", "lb", "oz", "tsp", "tbsp", "cup", "part", "ml", "fl oz"
+            "kg", "g", "lb", "ml", "oz", "tsp", "tbsp", "cup", "part", "fl oz"
     );
     private static final List<String> SINGULAR_UNITS = List.of(
             "slice", "pinch", "dash", "dusting", "piece"
+    );
+    private static final List<String> PLURAL_SINGULAR_UNITS = List.of(
+            "slices", "pinches", "dashes", "dustings", "pieces"
     );
     private static final Map<String, Float> SPECIAL_NUMBERS = Map.of(
             "½", 0.50F,
@@ -25,21 +28,20 @@ public class MeasureParseUtils {
     );
 
     public static void main (String[] args){
-        // This is currently working up to "1kg"
+        // These Currently All work
         List<String> testList = List.of(
                 "175g/6oz", "2 medium", "½ tsp", "Pinch", "1 tbsp", "2-3 ml", "1", "8 thin slices", "Dusting",
                 "50ml/2fl oz", "1-2tbsp", "750g piece", "1kg", "1.5kg", " 1/2cup", "1/2 lb", "1/4 lb", "Juice of 1",
                 "Grated Zest of 2", "1/4", "1/8 teaspoon"
         );
-        // need to be sure to trim the input, and toLower
-//        for (int i = 0; i < 11; i++) {
-//            String testString = testList.get(i);
-//            parseMeasurement(testString);
-//        }
 
-        parseMeasurement(testList.get(20));
+        for (String testString : testList) {
+            System.out.println(testString);
+            parseMeasurement(testString);
+        }
     }
 
+    // This could likely use an improvement, but it should work for now.
     public static Measurements parseMeasurement(String measurement) {
         Float quantity = 0.0F;
         String unit = "";
@@ -70,10 +72,19 @@ public class MeasureParseUtils {
                 } else if (hasSlash(measureArr[0])) {
                     String[] fracArr = measureArr[0].split("/");
                     quantity = Float.parseFloat(fracArr[0]) / Float.parseFloat(fracArr[1]);
+                } else if (isPluralSingularUnit(measurement)) {
+                    for (String str : measureArr) {
+                        if (hasDigit(str)) {
+                            quantity = Float.parseFloat(str);
+                            unit = getPluralUnit(measurement);
+                            skipUnit = true;
+                            break;
+                        }
+                    }
                 } else if (measureArr.length > 2) {
                     // Pick the number out of the junk
-                    for (String str : measureArr){
-                        if (hasDigit(str)){
+                    for (String str : measureArr) {
+                        if (hasDigit(str)) {
                             quantity = Float.parseFloat(str);
                             unit = getUnitOfSizeTwoPlusSpecial(measureArr);
                             skipUnit = true;
@@ -106,7 +117,7 @@ public class MeasureParseUtils {
                         }  else {
                             quantity = Float.valueOf(strQuantity);
                         }
-                        unit = unitArray[0].substring(foundIndex);
+                        unit = unitArray[0].substring(foundIndex, foundIndex + posUnit.length());
                         break;
                     }
                 }
@@ -148,6 +159,16 @@ public class MeasureParseUtils {
         return new MeasurementsBuilder().units(unit).quantity(quantity).build();
     }
 
+    private static String getPluralUnit(String strToCheck) {
+        for (String str : PLURAL_SINGULAR_UNITS) {
+            if (strToCheck.contains(str)){
+                return str;
+            }
+        }
+
+        return "";
+    }
+
     public static Float splitTheDash(String measure){
         String[] quantityArr = measure.split("-");
         return Float.valueOf(quantityArr[0]);
@@ -178,9 +199,19 @@ public class MeasureParseUtils {
         return str.contains(" ");
     }
 
+    public static boolean isPluralSingularUnit(String strToCheck){
+        for (String str : PLURAL_SINGULAR_UNITS) {
+            if (strToCheck.contains(str)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static boolean isASingularUnit(String strToCheck){
         for (String str : SINGULAR_UNITS) {
-            if (strToCheck.contains(str)){
+            if (strToCheck.contains(str) && !(strToCheck.contains(str + "s")) || strToCheck.contains(str + "es")){
                 return true;
             }
         }
