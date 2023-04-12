@@ -19,7 +19,7 @@ public class ConversionValues {
             YRD, ConversionValues::yardToMeter,
             MI, ConversionValues::mileToMeter,
             SLICE, ConversionValues::sliceToPiece,
-            PIECE, ConversionValues::peiceToPiece,
+            PIECE, ConversionValues::pieceToPiece,
             F, ConversionValues::fahrenheitToCelsius,
             C, ConversionValues::celsiusToCelsius
             K, ConversionValues::kelvinToCelsius,
@@ -47,5 +47,32 @@ public class ConversionValues {
 
     public static Float inchesToMeter(Float quantity) {
         return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(39.37), RoundingMode.CEILING).floatValue();
+    }
+
+    public static Float footToMeter(Float quantity) {
+        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(3.281), RoundingMode.CEILING).floatValue();
+    }
+
+    public static Float yardToMeter(Float quantity) {
+        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1.094), RoundingMode.CEILING).floatValue();
+    }
+
+    public static Float mileToMeter(Float quantity) {
+        return BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(1609)).floatValue();
+    }
+
+    public static Float sliceToPiece(Float quantity) {
+        return quantity;
+    }
+
+    public static Float pieceToPiece(Float quantity) {
+        return quantity;
+    }
+
+    public static Float fahrenheitToCelsius(Float quantity) {
+        // TODO: Test this to make sure it's right
+        BigDecimal decimalQuantity = BigDecimal.valueOf(quantity);
+        BigDecimal ratio = BigDecimal.valueOf(5).divide(BigDecimal.valueOf(9), RoundingMode.CEILING);
+        return (decimalQuantity.subtract(BigDecimal.valueOf(32))).multiply(ratio).floatValue();
     }
 }
