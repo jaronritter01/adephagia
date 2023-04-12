@@ -2,6 +2,7 @@ package com.finalproject.adephagia.util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -12,34 +13,34 @@ import static com.finalproject.adephagia.util.VolumetricUnit.*;
 import static com.finalproject.adephagia.util.WeightUnit.*;
 
 public class ConversionValues {
-    private final Map<Unit, Function<Float, Float>> conversionMap = Map.of(
-            M, ConversionValues::meterToMeter,
-            IN, ConversionValues::inchesToMeter,
-            FT, ConversionValues::footToMeter,
-            YRD, ConversionValues::yardToMeter,
-            MI, ConversionValues::mileToMeter,
-            SLICE, ConversionValues::sliceToPiece,
-            PIECE, ConversionValues::pieceToPiece,
-            F, ConversionValues::fahrenheitToCelsius,
-            C, ConversionValues::celsiusToCelsius,
-            K, ConversionValues::kelvinToCelsius,
-            L, ConversionValues::literToLiter,
-            FL_OZ, ConversionValues::fluidOunceToLiter,
-            PINT, ConversionValues::pintToLiter,
-            QUART, ConversionValues::quartToLiter,
-            GAL, ConversionValues::gallonToLiter,
-            CUP, ConversionValues::cupToLiter,
-            TBSP, ConversionValues::tablespoonToLiter,
-            TSP, ConversionValues::teaspoonToLiter,
-            PINCH, ConversionValues::pinchToLiter
-            DASH, ConversionValues::dashToLiter,
-            DUSTING, ConversionValues::dustingToLiter,
-            G, ConversionValues::gramToGram,
-            OZ, ConversionValues::ounceToGram,
-            LB, ConversionValues::poundtoGram,
-            ST, ConversionValues::stoneToGram,
-            T, ConversionValues::tonToGram
-    );
+    private final static Map<Unit, Function<Float, Float>> conversionMap = new HashMap<>() {{
+        put(M, ConversionValues::meterToMeter);
+        put(IN, ConversionValues::inchesToMeter);
+        put(FT, ConversionValues::footToMeter);
+        put(YRD, ConversionValues::yardToMeter);
+        put(MI, ConversionValues::mileToMeter);
+        put(SLICE, ConversionValues::sliceToPiece);
+        put(PIECE, ConversionValues::pieceToPiece);
+        put(F, ConversionValues::fahrenheitToCelsius);
+        put(C, ConversionValues::celsiusToCelsius);
+        put(K, ConversionValues::kelvinToCelsius);
+        put(L, ConversionValues::literToLiter);
+        put(FL_OZ, ConversionValues::fluidOunceToLiter);
+        put(PINT, ConversionValues::pintToLiter);
+        put(QUART, ConversionValues::quartToLiter);
+        put(GAL, ConversionValues::gallonToLiter);
+        put(CUP, ConversionValues::cupToLiter);
+        put(TBSP, ConversionValues::tablespoonToLiter);
+        put(TSP, ConversionValues::teaspoonToLiter);
+        put(PINCH, ConversionValues::pinchToLiter);
+        put(DASH, ConversionValues::dashToLiter);
+        put(DUSTING, ConversionValues::dustingToLiter);
+        put(G, ConversionValues::gramToGram);
+        put(OZ, ConversionValues::ounceToGram);
+        put(LB, ConversionValues::poundToGram);
+        put(ST, ConversionValues::stoneToGram);
+        put(T, ConversionValues::tonToGram);
+    }};
 
     public static Float meterToMeter(Float quantity) {
         return quantity;
@@ -75,4 +76,77 @@ public class ConversionValues {
         BigDecimal ratio = BigDecimal.valueOf(5).divide(BigDecimal.valueOf(9), RoundingMode.CEILING);
         return (decimalQuantity.subtract(BigDecimal.valueOf(32))).multiply(ratio).floatValue();
     }
+
+    public static Float celsiusToCelsius(Float quantity) {
+        return quantity;
+    }
+
+    public static Float kelvinToCelsius(Float quantity) {
+        return BigDecimal.valueOf(quantity).subtract(BigDecimal.valueOf(-273.15)).floatValue();
+    }
+
+    public static Float literToLiter(Float quantity) {
+        return quantity;
+    }
+
+    public static Float fluidOunceToLiter(Float quantity) {
+        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(33.814), RoundingMode.CEILING).floatValue();
+    }
+
+    public static Float pintToLiter(Float quantity) {
+        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(2.113), RoundingMode.CEILING).floatValue();
+    }
+
+    public static Float quartToLiter(Float quantity) {
+        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1.057), RoundingMode.CEILING).floatValue();
+    }
+
+    public static Float gallonToLiter(Float quantity) {
+        return BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(3.785)).floatValue();
+    }
+
+    public static Float cupToLiter(Float quantity) {
+        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(4.227), RoundingMode.CEILING).floatValue();
+    }
+
+    public static Float tablespoonToLiter(Float quantity) {
+        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(67.628), RoundingMode.CEILING).floatValue();
+    }
+
+    public static Float teaspoonToLiter(Float quantity) {
+        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(202.9), RoundingMode.CEILING).floatValue();
+    }
+
+    public static Float pinchToLiter(Float quantity) {
+        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(32258.0645), RoundingMode.CEILING).floatValue();
+    }
+
+    public static Float dashToLiter(Float quantity) {
+        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1612.9), RoundingMode.CEILING).floatValue();
+    }
+
+    public static Float dustingToLiter(Float quantity) {
+        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1612.9), RoundingMode.CEILING).floatValue();
+    }
+
+    public static Float gramToGram(Float quantity) {
+        return quantity;
+    }
+
+    public static Float ounceToGram(Float quantity) {
+        return BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(28.35)).floatValue();
+    }
+
+    public static Float poundToGram(Float quantity) {
+        return BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(453.6)).floatValue();
+    }
+
+    public static Float stoneToGram(Float quantity) {
+        return BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(6350.29)).floatValue();
+    }
+
+    public static Float tonToGram(Float quantity) {
+        return BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(907200)).floatValue();
+    }
+
 }
