@@ -21,7 +21,7 @@ public class ConversionValues {
             SLICE, ConversionValues::sliceToPiece,
             PIECE, ConversionValues::pieceToPiece,
             F, ConversionValues::fahrenheitToCelsius,
-            C, ConversionValues::celsiusToCelsius
+            C, ConversionValues::celsiusToCelsius,
             K, ConversionValues::kelvinToCelsius,
             L, ConversionValues::literToLiter,
             FL_OZ, ConversionValues::fluidOunceToLiter,
