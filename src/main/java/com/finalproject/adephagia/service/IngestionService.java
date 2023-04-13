@@ -10,10 +10,7 @@ import com.finalproject.adephagia.dto.Measurements;
 import com.finalproject.adephagia.repository.FoodItemRepository;
 import com.finalproject.adephagia.repository.RecipeItemRepository;
 import com.finalproject.adephagia.repository.RecipeRepository;
-import com.finalproject.adephagia.util.FoodItemBuilder;
-import com.finalproject.adephagia.util.MeasureParseUtils;
-import com.finalproject.adephagia.util.RecipeBuilder;
-import com.finalproject.adephagia.util.RecipeItemBuilder;
+import com.finalproject.adephagia.util.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
@@ -122,10 +119,13 @@ public class IngestionService {
                     try {
                         Measurements measurements = MeasureParseUtils.parseMeasurement(ingredientMeasure);
                         //create the recipe item and associate it with the recipe
-                        // TODO: Convert Units
+                        // TODO: Convert Units and Test
+                        Measurements convertMeasurements = ConversionUtils.convertToStandardUnit(
+                                measurements.getUnit(), measurements.getQuantity()
+                        );
                         RecipeItem recipeItem = new RecipeItemBuilder().foodItem(savedItem)
-                                .recipe(recipe).measurementUnit(measurements.getUnit())
-                                .quantity(measurements.getQuantity()).build();
+                                .recipe(recipe).measurementUnit(convertMeasurements.getUnit())
+                                .quantity(convertMeasurements.getQuantity()).build();
                     } catch (Exception e){
                         System.out.printf("Error: Measure: %s%n", ingredientMeasure);
                         e.printStackTrace();

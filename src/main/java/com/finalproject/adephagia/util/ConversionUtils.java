@@ -9,7 +9,7 @@ public class ConversionUtils {
     private static final TemperatureUnit temperatureUnit = TemperatureUnit.DEFAULT;
     private static final WeightUnit weightUnit = WeightUnit.DEFAULT;
 
-    public static Measurements convertToStandardUnit(String unitToConvert, Float quantity) throws Exception {
+    public static Measurements convertToStandardUnit(String unitToConvert, Float quantity) {
         Unit unit = getUnit(unitToConvert);
         if (unit == null) {
             return new MeasurementsBuilder().units("default").quantity(quantity).build();
