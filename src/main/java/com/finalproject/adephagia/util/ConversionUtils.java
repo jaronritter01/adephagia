@@ -9,12 +9,16 @@ public class ConversionUtils {
     private static final TemperatureUnit temperatureUnit = TemperatureUnit.DEFAULT;
     private static final WeightUnit weightUnit = WeightUnit.DEFAULT;
 
-    public Measurements convertToStandardUnit(String unitToConvert, Float quantity) {
+    public static Measurements convertToStandardUnit(String unitToConvert, Float quantity) throws Exception {
         Unit unit = getUnit(unitToConvert);
-        return null;
+        if (unit == null) {
+            throw new Exception("Unknown Unit");
+        }
+
+        return ConversionValues.getConversion(unit).apply(quantity);
     }
 
-    private Unit getUnit(String unitToConvert) {
+    private static Unit getUnit(String unitToConvert) {
         Unit volUnit = volumetricUnit.getUnitEnum(unitToConvert);
         Unit lenUnit = lengthUnit.getUnitEnum(unitToConvert);
         Unit singUnit = singularUnit.getUnitEnum(unitToConvert);

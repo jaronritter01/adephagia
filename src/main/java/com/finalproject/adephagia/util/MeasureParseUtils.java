@@ -28,7 +28,7 @@ public class MeasureParseUtils {
     );
 
     // This was used for testing purposes
-//    public static void main (String[] args){
+//    public static void main (String[] args) throws Exception {
 //        // These Currently All work
 //        List<String> testList = List.of(
 //                "175g/6oz", "2 medium", "½ tsp", "Pinch", "1 tbsp", "2-3 ml", "1", "8 thin slices", "Dusting",
@@ -38,7 +38,14 @@ public class MeasureParseUtils {
 //
 //        for (String testString : testList) {
 //            System.out.println(testString);
-//            parseMeasurement(testString);
+//            Measurements measurements = parseMeasurement(testString);
+//            System.out.println("Init Measurements: " + measurements.getQuantity() + " " + measurements.getUnit());
+//            try {
+//                measurements = ConversionUtils.convertToStandardUnit(measurements.getUnit(), measurements.getQuantity());
+//                System.out.println("After Measurements: " + measurements.getQuantity() + " " + measurements.getUnit());
+//            } catch (Exception e) {
+//                System.out.println("cannot process");
+//            }
 //        }
 //    }
 

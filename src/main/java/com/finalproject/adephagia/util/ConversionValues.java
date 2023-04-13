@@ -1,5 +1,7 @@
 package com.finalproject.adephagia.util;
 
+import com.finalproject.adephagia.dto.Measurements;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
@@ -13,7 +15,7 @@ import static com.finalproject.adephagia.util.VolumetricUnit.*;
 import static com.finalproject.adephagia.util.WeightUnit.*;
 
 public class ConversionValues {
-    private final static Map<Unit, Function<Float, Float>> conversionMap = new HashMap<>() {{
+    private final static Map<Unit, Function<Float, Measurements>> conversionMap = new HashMap<>() {{
         put(M, ConversionValues::meterToMeter);
         put(IN, ConversionValues::inchesToMeter);
         put(FT, ConversionValues::footToMeter);
@@ -42,111 +44,154 @@ public class ConversionValues {
         put(T, ConversionValues::tonToGram);
     }};
 
-    public static Float meterToMeter(Float quantity) {
-        return quantity;
+    public static Function<Float, Measurements> getConversion(Unit unit) {
+        try {
+            return conversionMap.get(unit);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    public static Float inchesToMeter(Float quantity) {
-        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(39.37), RoundingMode.CEILING).floatValue();
+    public static Measurements meterToMeter(Float quantity) {
+        return new MeasurementsBuilder().units("m").quantity(quantity).build();
     }
 
-    public static Float footToMeter(Float quantity) {
-        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(3.281), RoundingMode.CEILING).floatValue();
+    public static Measurements inchesToMeter(Float quantity) {
+        Float returnQuantity =
+                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(39.37), RoundingMode.CEILING).floatValue();
+        return new MeasurementsBuilder().units("m").quantity(returnQuantity).build();
     }
 
-    public static Float yardToMeter(Float quantity) {
-        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1.094), RoundingMode.CEILING).floatValue();
+    public static Measurements footToMeter(Float quantity) {
+        Float returnQuantity =
+                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(3.281), RoundingMode.CEILING).floatValue();
+        return new MeasurementsBuilder().units("m").quantity(returnQuantity).build();
     }
 
-    public static Float mileToMeter(Float quantity) {
-        return BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(1609)).floatValue();
+    public static Measurements yardToMeter(Float quantity) {
+        Float returnQuantity =
+                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1.094), RoundingMode.CEILING).floatValue();
+        return new MeasurementsBuilder().units("m").quantity(returnQuantity).build();
     }
 
-    public static Float sliceToPiece(Float quantity) {
-        return quantity;
+    public static Measurements mileToMeter(Float quantity) {
+        Float returnQuantity =
+                BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(1609)).floatValue();
+        return new MeasurementsBuilder().units("m").quantity(returnQuantity).build();
     }
 
-    public static Float pieceToPiece(Float quantity) {
-        return quantity;
+    public static Measurements sliceToPiece(Float quantity) {
+        return new MeasurementsBuilder().units("piece").quantity(quantity).build();
     }
 
-    public static Float fahrenheitToCelsius(Float quantity) {
+    public static Measurements pieceToPiece(Float quantity) {
+        return new MeasurementsBuilder().units("piece").quantity(quantity).build();
+    }
+
+    public static Measurements fahrenheitToCelsius(Float quantity) {
         // TODO: Test this to make sure it's right
         BigDecimal decimalQuantity = BigDecimal.valueOf(quantity);
         BigDecimal ratio = BigDecimal.valueOf(5).divide(BigDecimal.valueOf(9), RoundingMode.CEILING);
-        return (decimalQuantity.subtract(BigDecimal.valueOf(32))).multiply(ratio).floatValue();
+        Float returnQuantity = (decimalQuantity.subtract(BigDecimal.valueOf(32))).multiply(ratio).floatValue();
+        return new MeasurementsBuilder().units("C").quantity(returnQuantity).build();
     }
 
-    public static Float celsiusToCelsius(Float quantity) {
-        return quantity;
+    public static Measurements celsiusToCelsius(Float quantity) {
+        return new MeasurementsBuilder().units("C").quantity(quantity).build();
     }
 
-    public static Float kelvinToCelsius(Float quantity) {
-        return BigDecimal.valueOf(quantity).subtract(BigDecimal.valueOf(-273.15)).floatValue();
+    public static Measurements kelvinToCelsius(Float quantity) {
+        Float returnQuantity = BigDecimal.valueOf(quantity).subtract(BigDecimal.valueOf(-273.15)).floatValue();
+        return new MeasurementsBuilder().units("C").quantity(returnQuantity).build();
     }
 
-    public static Float literToLiter(Float quantity) {
-        return quantity;
+    public static Measurements literToLiter(Float quantity) {
+        return new MeasurementsBuilder().units("L").quantity(quantity).build();
     }
 
-    public static Float fluidOunceToLiter(Float quantity) {
-        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(33.814), RoundingMode.CEILING).floatValue();
+    public static Measurements fluidOunceToLiter(Float quantity) {
+        Float returnQuantity =
+                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(33.814), RoundingMode.CEILING).floatValue();
+        return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
-    public static Float pintToLiter(Float quantity) {
-        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(2.113), RoundingMode.CEILING).floatValue();
+    public static Measurements pintToLiter(Float quantity) {
+        Float returnQuantity =
+                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(2.113), RoundingMode.CEILING).floatValue();
+        return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
-    public static Float quartToLiter(Float quantity) {
-        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1.057), RoundingMode.CEILING).floatValue();
+    public static Measurements quartToLiter(Float quantity) {
+        Float returnQuantity =
+                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1.057), RoundingMode.CEILING).floatValue();
+        return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
-    public static Float gallonToLiter(Float quantity) {
-        return BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(3.785)).floatValue();
+    public static Measurements gallonToLiter(Float quantity) {
+        Float returnQuantity =
+                BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(3.785)).floatValue();
+        return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
-    public static Float cupToLiter(Float quantity) {
-        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(4.227), RoundingMode.CEILING).floatValue();
+    public static Measurements cupToLiter(Float quantity) {
+        Float returnQuantity =
+                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(4.227), RoundingMode.CEILING).floatValue();
+        return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
-    public static Float tablespoonToLiter(Float quantity) {
-        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(67.628), RoundingMode.CEILING).floatValue();
+    public static Measurements tablespoonToLiter(Float quantity) {
+        Float returnQuantity =
+                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(67.628), RoundingMode.CEILING).floatValue();
+        return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
-    public static Float teaspoonToLiter(Float quantity) {
-        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(202.9), RoundingMode.CEILING).floatValue();
+    public static Measurements teaspoonToLiter(Float quantity) {
+        Float returnQuantity =
+                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(202.9), RoundingMode.CEILING).floatValue();
+        return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
-    public static Float pinchToLiter(Float quantity) {
-        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(32258.0645), RoundingMode.CEILING).floatValue();
+    public static Measurements pinchToLiter(Float quantity) {
+        Float returnQuantity =
+                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(32258.0645), RoundingMode.CEILING).floatValue();
+        return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
-    public static Float dashToLiter(Float quantity) {
-        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1612.9), RoundingMode.CEILING).floatValue();
+    public static Measurements dashToLiter(Float quantity) {
+        Float returnQuantity =
+                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1612.9), RoundingMode.CEILING).floatValue();
+        return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
-    public static Float dustingToLiter(Float quantity) {
-        return BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1612.9), RoundingMode.CEILING).floatValue();
+    public static Measurements dustingToLiter(Float quantity) {
+        Float returnQuantity =
+                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1612.9), RoundingMode.CEILING).floatValue();
+        return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
-    public static Float gramToGram(Float quantity) {
-        return quantity;
+    public static Measurements gramToGram(Float quantity) {
+        return new MeasurementsBuilder().units("g").quantity(quantity).build();
     }
 
-    public static Float ounceToGram(Float quantity) {
-        return BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(28.35)).floatValue();
+    public static Measurements ounceToGram(Float quantity) {
+        Float returnQuantity = BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(28.35)).floatValue();
+        return new MeasurementsBuilder().units("g").quantity(returnQuantity).build();
     }
 
-    public static Float poundToGram(Float quantity) {
-        return BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(453.6)).floatValue();
+    public static Measurements poundToGram(Float quantity) {
+        Float returnQuantity = BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(453.6)).floatValue();
+        return new MeasurementsBuilder().units("g").quantity(returnQuantity).build();
     }
 
-    public static Float stoneToGram(Float quantity) {
-        return BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(6350.29)).floatValue();
+    public static Measurements stoneToGram(Float quantity) {
+        Float returnQuantity = BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(6350.29)).floatValue();
+        return new MeasurementsBuilder().units("g").quantity(returnQuantity).build();
     }
 
-    public static Float tonToGram(Float quantity) {
-        return BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(907200)).floatValue();
+    public static Measurements tonToGram(Float quantity) {
+        Float returnQuantity = BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(907200)).floatValue();
+        return new MeasurementsBuilder().units("g").quantity(returnQuantity).build();
     }
 
 }
