@@ -12,7 +12,7 @@ public class ConversionUtils {
     public static Measurements convertToStandardUnit(String unitToConvert, Float quantity) throws Exception {
         Unit unit = getUnit(unitToConvert);
         if (unit == null) {
-            throw new Exception("Unknown Unit");
+            return new MeasurementsBuilder().units("default").quantity(quantity).build();
         }
 
         return ConversionValues.getConversion(unit).apply(quantity);

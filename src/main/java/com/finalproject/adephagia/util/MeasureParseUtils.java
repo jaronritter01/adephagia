@@ -28,26 +28,24 @@ public class MeasureParseUtils {
     );
 
     // This was used for testing purposes
-//    public static void main (String[] args) throws Exception {
-//        // These Currently All work
-//        List<String> testList = List.of(
-//                "175g/6oz", "2 medium", "½ tsp", "Pinch", "1 tbsp", "2-3 ml", "1", "8 thin slices", "Dusting",
-//                "50ml/2fl oz", "1-2tbsp", "750g piece", "1kg", "1.5kg", " 1/2cup", "1/2 lb", "1/4 lb", "Juice of 1",
-//                "Grated Zest of 2", "1/4", "1/8 teaspoon"
-//        );
-//
-//        for (String testString : testList) {
-//            System.out.println(testString);
-//            Measurements measurements = parseMeasurement(testString);
-//            System.out.println("Init Measurements: " + measurements.getQuantity() + " " + measurements.getUnit());
-//            try {
-//                measurements = ConversionUtils.convertToStandardUnit(measurements.getUnit(), measurements.getQuantity());
-//                System.out.println("After Measurements: " + measurements.getQuantity() + " " + measurements.getUnit());
-//            } catch (Exception e) {
-//                System.out.println("cannot process");
-//            }
-//        }
-//    }
+    public static void main (String[] args) throws Exception {
+        // These Currently All work
+        List<String> testList = List.of(
+                "175g/6oz", "2 medium", "½ tsp", "Pinch", "1 tbsp", "2-3 ml", "1", "8 thin slices", "Dusting",
+                "50ml/2fl oz", "1-2tbsp", "750g piece", "1kg", "1.5kg", " 1/2cup", "1/2 lb", "1/4 lb", "Juice of 1",
+                "Grated Zest of 2", "1/4", "1/8 teaspoon"
+        );
+
+        for (String testString : testList) {
+            System.out.println(testString);
+            Measurements measurements = parseMeasurement(testString);
+            System.out.println("Init Measurements: " + measurements.getQuantity() + " " + measurements.getUnit());
+
+            measurements = ConversionUtils.convertToStandardUnit(measurements.getUnit(), measurements.getQuantity());
+            System.out.println("After Measurements: " + measurements.getQuantity() + " " + measurements.getUnit());
+
+        }
+    }
 
     // This could likely use an improvement, but it should work for now.
     public static Measurements parseMeasurement(String measurement) {

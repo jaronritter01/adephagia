@@ -122,6 +122,7 @@ public class IngestionService {
                     try {
                         Measurements measurements = MeasureParseUtils.parseMeasurement(ingredientMeasure);
                         //create the recipe item and associate it with the recipe
+                        // TODO: Convert Units
                         RecipeItem recipeItem = new RecipeItemBuilder().foodItem(savedItem)
                                 .recipe(recipe).measurementUnit(measurements.getUnit())
                                 .quantity(measurements.getQuantity()).build();

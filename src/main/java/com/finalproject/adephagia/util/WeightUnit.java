@@ -1,7 +1,7 @@
 package com.finalproject.adephagia.util;
 
 public enum WeightUnit implements Unit {
-    G, OZ, LB, ST, T, DEFAULT;
+    G, KG, MG, OZ, LB, ST, T, DEFAULT;
 
     @Override
     public UNIT_TYPE getUnitType() {
@@ -12,6 +12,8 @@ public enum WeightUnit implements Unit {
     public WeightUnit getUnitEnum(String value) {
         return switch (value.toLowerCase()) {
             case "gram", "grams", "g" -> G; // Default Value
+            case "kilogram", "kilograms", "kg" -> KG;
+            case "milligram", "milligrams", "mg" -> MG;
             case "ounce", "ounces", "oz" -> OZ;
             case "pound", "pounds", "lb", "lbs" -> LB;
             case "stone", "stones", "st", "sts" -> ST;

@@ -2,8 +2,7 @@ package com.finalproject.adephagia.util;
 
 import com.finalproject.adephagia.dto.Measurements;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -27,6 +26,7 @@ public class ConversionValues {
         put(C, ConversionValues::celsiusToCelsius);
         put(K, ConversionValues::kelvinToCelsius);
         put(L, ConversionValues::literToLiter);
+        put(ML, ConversionValues::milliliterToLiter);
         put(FL_OZ, ConversionValues::fluidOunceToLiter);
         put(PINT, ConversionValues::pintToLiter);
         put(QUART, ConversionValues::quartToLiter);
@@ -38,11 +38,15 @@ public class ConversionValues {
         put(DASH, ConversionValues::dashToLiter);
         put(DUSTING, ConversionValues::dustingToLiter);
         put(G, ConversionValues::gramToGram);
+        put(KG, ConversionValues::kilogramToGram);
+        put(MG, ConversionValues::milligramToGram);
         put(OZ, ConversionValues::ounceToGram);
         put(LB, ConversionValues::poundToGram);
         put(ST, ConversionValues::stoneToGram);
         put(T, ConversionValues::tonToGram);
     }};
+
+    private static DecimalFormat df = new DecimalFormat("#.000000");
 
     public static Function<Float, Measurements> getConversion(Unit unit) {
         try {
@@ -58,26 +62,26 @@ public class ConversionValues {
     }
 
     public static Measurements inchesToMeter(Float quantity) {
-        Float returnQuantity =
-                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(39.37), RoundingMode.CEILING).floatValue();
+        Float returnQuantity = Double.valueOf(quantity / 39.37).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("m").quantity(returnQuantity).build();
     }
 
     public static Measurements footToMeter(Float quantity) {
-        Float returnQuantity =
-                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(3.281), RoundingMode.CEILING).floatValue();
+        Float returnQuantity = Double.valueOf(quantity / 3.281).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("m").quantity(returnQuantity).build();
     }
 
     public static Measurements yardToMeter(Float quantity) {
-        Float returnQuantity =
-                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1.094), RoundingMode.CEILING).floatValue();
+        Float returnQuantity = Double.valueOf(quantity / 1.094).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("m").quantity(returnQuantity).build();
     }
 
     public static Measurements mileToMeter(Float quantity) {
-        Float returnQuantity =
-                BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(1609)).floatValue();
+        Float returnQuantity = quantity * 1609;
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("m").quantity(returnQuantity).build();
     }
 
@@ -91,9 +95,9 @@ public class ConversionValues {
 
     public static Measurements fahrenheitToCelsius(Float quantity) {
         // TODO: Test this to make sure it's right
-        BigDecimal decimalQuantity = BigDecimal.valueOf(quantity);
-        BigDecimal ratio = BigDecimal.valueOf(5).divide(BigDecimal.valueOf(9), RoundingMode.CEILING);
-        Float returnQuantity = (decimalQuantity.subtract(BigDecimal.valueOf(32))).multiply(ratio).floatValue();
+        Double ratio =  5.0/9.0;
+        Float returnQuantity = Double.valueOf((quantity - 32) * ratio).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("C").quantity(returnQuantity).build();
     }
 
@@ -102,7 +106,8 @@ public class ConversionValues {
     }
 
     public static Measurements kelvinToCelsius(Float quantity) {
-        Float returnQuantity = BigDecimal.valueOf(quantity).subtract(BigDecimal.valueOf(-273.15)).floatValue();
+        Float returnQuantity = Double.valueOf(quantity - 273.15).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("C").quantity(returnQuantity).build();
     }
 
@@ -110,63 +115,69 @@ public class ConversionValues {
         return new MeasurementsBuilder().units("L").quantity(quantity).build();
     }
 
+    public static Measurements milliliterToLiter(Float quantity) {
+        Float returnQuantity = Double.valueOf(quantity / 1000).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
+        return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
+    }
+
     public static Measurements fluidOunceToLiter(Float quantity) {
-        Float returnQuantity =
-                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(33.814), RoundingMode.CEILING).floatValue();
+        Float returnQuantity = Double.valueOf(quantity / 33.814).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
     public static Measurements pintToLiter(Float quantity) {
-        Float returnQuantity =
-                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(2.113), RoundingMode.CEILING).floatValue();
+        Float returnQuantity = Double.valueOf(quantity / 2.113).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
     public static Measurements quartToLiter(Float quantity) {
-        Float returnQuantity =
-                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1.057), RoundingMode.CEILING).floatValue();
+        Float returnQuantity = Double.valueOf(quantity / 1.057).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
     public static Measurements gallonToLiter(Float quantity) {
-        Float returnQuantity =
-                BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(3.785)).floatValue();
+        Float returnQuantity = Double.valueOf(quantity * 3.785).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
     public static Measurements cupToLiter(Float quantity) {
-        Float returnQuantity =
-                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(4.227), RoundingMode.CEILING).floatValue();
+        Float returnQuantity = Double.valueOf(quantity / 4.227).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
     public static Measurements tablespoonToLiter(Float quantity) {
-        Float returnQuantity =
-                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(67.628), RoundingMode.CEILING).floatValue();
+        Float returnQuantity = Double.valueOf(quantity / 67.628).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
     public static Measurements teaspoonToLiter(Float quantity) {
-        Float returnQuantity =
-                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(202.9), RoundingMode.CEILING).floatValue();
+        Float returnQuantity = Double.valueOf(quantity /202.9).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
     public static Measurements pinchToLiter(Float quantity) {
-        Float returnQuantity =
-                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(32258.0645), RoundingMode.CEILING).floatValue();
+        Float returnQuantity = Double.valueOf(quantity / 32258.0645).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
     public static Measurements dashToLiter(Float quantity) {
-        Float returnQuantity =
-                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1612.9), RoundingMode.CEILING).floatValue();
+        Float returnQuantity = Double.valueOf(quantity / 1612.9).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
     public static Measurements dustingToLiter(Float quantity) {
-        Float returnQuantity =
-                BigDecimal.valueOf(quantity).divide(BigDecimal.valueOf(1612.9), RoundingMode.CEILING).floatValue();
+        Float returnQuantity = Double.valueOf(quantity / 1612.9).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("L").quantity(returnQuantity).build();
     }
 
@@ -174,23 +185,39 @@ public class ConversionValues {
         return new MeasurementsBuilder().units("g").quantity(quantity).build();
     }
 
+    public static Measurements kilogramToGram(Float quantity) {
+        Float returnQuantity = Double.valueOf(quantity * (1000)).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
+        return new MeasurementsBuilder().units("g").quantity(returnQuantity).build();
+    }
+
+    public static Measurements milligramToGram(Float quantity) {
+        Float returnQuantity = Double.valueOf(quantity / 1000).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
+        return new MeasurementsBuilder().units("g").quantity(returnQuantity).build();
+    }
+
     public static Measurements ounceToGram(Float quantity) {
-        Float returnQuantity = BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(28.35)).floatValue();
+        Float returnQuantity = Double.valueOf(quantity * 28.35).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("g").quantity(returnQuantity).build();
     }
 
     public static Measurements poundToGram(Float quantity) {
-        Float returnQuantity = BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(453.6)).floatValue();
+        Float returnQuantity = Double.valueOf(quantity * 453.6).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("g").quantity(returnQuantity).build();
     }
 
     public static Measurements stoneToGram(Float quantity) {
-        Float returnQuantity = BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(6350.29)).floatValue();
+        Float returnQuantity = Double.valueOf(quantity * 6350.29).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("g").quantity(returnQuantity).build();
     }
 
     public static Measurements tonToGram(Float quantity) {
-        Float returnQuantity = BigDecimal.valueOf(quantity).multiply(BigDecimal.valueOf(907200)).floatValue();
+        Float returnQuantity = Double.valueOf(quantity * 907200).floatValue();
+        returnQuantity = Float.valueOf(df.format(returnQuantity));
         return new MeasurementsBuilder().units("g").quantity(returnQuantity).build();
     }
 
