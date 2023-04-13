@@ -46,7 +46,7 @@ public class ConversionValues {
         put(T, ConversionValues::tonToGram);
     }};
 
-    private static DecimalFormat df = new DecimalFormat("#.000000");
+    private static final DecimalFormat df = new DecimalFormat("#.000000");
 
     public static Function<Float, Measurements> getConversion(Unit unit) {
         try {

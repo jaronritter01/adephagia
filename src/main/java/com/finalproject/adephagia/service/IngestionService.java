@@ -94,7 +94,6 @@ public class IngestionService {
                         .getDeclaredField("strIngredient" + i).get(ingestionItem);
                 if (ingredientName != null && !ingredientName.equals("")) {
                     ingredientName = ingredientName.toLowerCase();
-                    System.out.println(ingredientName);
                     Optional<FoodItem> item = foodItemRepository.findFoodItemsByName(ingredientName);
                     FoodItem savedItem;
                     // If the item does not exist create a new food item
@@ -116,6 +115,7 @@ public class IngestionService {
                     // Get the Measure
                     String ingredientMeasure = (String) ingestionItem.getClass()
                             .getDeclaredField("strMeasure" + i).get(ingestionItem);
+                    RecipeItem recipeItem;
                     try {
                         Measurements measurements = MeasureParseUtils.parseMeasurement(ingredientMeasure);
                         //create the recipe item and associate it with the recipe
@@ -123,13 +123,21 @@ public class IngestionService {
                         Measurements convertMeasurements = ConversionUtils.convertToStandardUnit(
                                 measurements.getUnit(), measurements.getQuantity()
                         );
-                        RecipeItem recipeItem = new RecipeItemBuilder().foodItem(savedItem)
+                        recipeItem = new RecipeItemBuilder().foodItem(savedItem)
                                 .recipe(recipe).measurementUnit(convertMeasurements.getUnit())
                                 .quantity(convertMeasurements.getQuantity()).build();
+                        System.out.println("Converted Item: Unit: " + recipeItem.getMeasurementUnit() + " Quantity: " + recipeItem.getQuantity());
                     } catch (Exception e){
-                        System.out.printf("Error: Measure: %s%n", ingredientMeasure);
-                        e.printStackTrace();
+                        // I believe this happens when no measurement for an item is given
+                        System.out.printf("Error: Measure: %s Ingredient: %s%n", ingredientMeasure, ingredientName);
+                        recipeItem = new RecipeItemBuilder().foodItem(savedItem)
+                                .recipe(recipe).measurementUnit("default")
+                                .quantity(0F).build();
+                        System.out.println(recipeItem.getFoodItem().getName());
+                        System.out.println(recipeItem.getQuantity());
+                        System.out.println(recipeItem.getMeasurementUnit());
                     }
+                    //System.out.println(recipeItem);
                     // save the item
                     //recipeItemRepository.save(recipeItem);
                 }

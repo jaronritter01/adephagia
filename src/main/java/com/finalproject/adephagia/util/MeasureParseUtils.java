@@ -47,7 +47,7 @@ public class MeasureParseUtils {
 //    }
 
     // This could likely use an improvement, but it should work for now.
-    public static Measurements parseMeasurement(String measurement) {
+    public static Measurements parseMeasurement(String measurement) throws Exception {
         Float quantity = 0.0F;
         String unit = "";
         String[] unitArray = new String[2];
@@ -156,7 +156,13 @@ public class MeasureParseUtils {
         }
         // Not sure what case this should be
         else {
-            System.out.println("else");
+            /* This occasionally gets called when the measurement is odd like:
+            * 1. sprinkling
+            * 2. to glaze
+            * 3. grated
+            * */
+            System.out.printf("Else Measure: %s%n", measurement);
+            throw new Exception("Bad Measure");
         }
 
         System.out.printf("Quantity: %.2f, Unit: %s%n", quantity, unit);
