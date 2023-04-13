@@ -161,11 +161,10 @@ public class MeasureParseUtils {
             * 2. to glaze
             * 3. grated
             * */
-            System.out.printf("Else Measure: %s%n", measurement);
             throw new Exception("Bad Measure");
         }
 
-        System.out.printf("Quantity: %.2f, Unit: %s%n", quantity, unit);
+        // System.out.printf("Quantity: %.2f, Unit: %s%n", quantity, unit);
 
         return new MeasurementsBuilder().units(unit).quantity(quantity).build();
     }

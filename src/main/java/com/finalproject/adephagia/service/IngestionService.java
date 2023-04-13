@@ -80,7 +80,7 @@ public class IngestionService {
         // Click Images
         driver.findElement(By.xpath("//*[text()='Images']")).click();
         String src = driver.findElement(By.cssSelector("div.islrc img")).getAttribute("src");
-        System.out.println(src);
+        // System.out.println(src);
         // Close the driver
         driver.quit();
         //Set the url
@@ -119,25 +119,19 @@ public class IngestionService {
                     try {
                         Measurements measurements = MeasureParseUtils.parseMeasurement(ingredientMeasure);
                         //create the recipe item and associate it with the recipe
-                        // TODO: Convert Units and Test
                         Measurements convertMeasurements = ConversionUtils.convertToStandardUnit(
                                 measurements.getUnit(), measurements.getQuantity()
                         );
                         recipeItem = new RecipeItemBuilder().foodItem(savedItem)
                                 .recipe(recipe).measurementUnit(convertMeasurements.getUnit())
                                 .quantity(convertMeasurements.getQuantity()).build();
-                        System.out.println("Converted Item: Unit: " + recipeItem.getMeasurementUnit() + " Quantity: " + recipeItem.getQuantity());
                     } catch (Exception e){
                         // I believe this happens when no measurement for an item is given
-                        System.out.printf("Error: Measure: %s Ingredient: %s%n", ingredientMeasure, ingredientName);
+                        // create a default item
                         recipeItem = new RecipeItemBuilder().foodItem(savedItem)
                                 .recipe(recipe).measurementUnit("default")
                                 .quantity(0F).build();
-                        System.out.println(recipeItem.getFoodItem().getName());
-                        System.out.println(recipeItem.getQuantity());
-                        System.out.println(recipeItem.getMeasurementUnit());
                     }
-                    //System.out.println(recipeItem);
                     // save the item
                     //recipeItemRepository.save(recipeItem);
                 }
