@@ -14,6 +14,7 @@ import com.finalproject.adephagia.util.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.stereotype.Service;
@@ -56,12 +57,13 @@ public class IngestionService {
                         .name(recipe.getStrMeal().trim())
                         .description(recipe.getStrInstructions().trim())
                         .isPublic(true)
+                        .picId(recipe.getStrMealThumb())
                         .build();
-                // Create FoodItems
-                createAndSaveFoodItems(recipe, recipeToBeSaved);
 
                 // save recipe
-                //recipeRepository.save(recipeToBeSaved);
+                recipeRepository.save(recipeToBeSaved);
+                // Create FoodItems
+                createAndSaveFoodItems(recipe, recipeToBeSaved);
             });
         });
     }
@@ -79,8 +81,13 @@ public class IngestionService {
         driver.findElement(By.className("gLFyf")).sendKeys(Keys.RETURN);
         // Click Images
         driver.findElement(By.xpath("//*[text()='Images']")).click();
-        String src = driver.findElement(By.cssSelector("div.islrc img")).getAttribute("src");
-        // System.out.println(src);
+        driver.findElement(By.cssSelector("div.islrc img")).click();
+
+        List<WebElement> elements = driver
+                .findElements(By.xpath("//img[contains(@data-src,\"http\")]"));
+
+        String src = elements.get(0).getAttribute("data-src");
+
         // Close the driver
         driver.quit();
         //Set the url
@@ -104,10 +111,9 @@ public class IngestionService {
                                 .reusable(true)
                                 .build();
                         // Find a pic and description
-                        //findPicAndDescription(ingredientName, foodItem);
+                        findPicAndDescription(ingredientName, foodItem);
                         //save the item
-                        //savedItem = foodItemRepository.save(foodItem);
-                        savedItem = foodItem;
+                        savedItem = foodItemRepository.save(foodItem);
                     } else {
                         // set the item
                         savedItem = item.get();
@@ -133,7 +139,7 @@ public class IngestionService {
                                 .quantity(0F).build();
                     }
                     // save the item
-                    //recipeItemRepository.save(recipeItem);
+                    recipeItemRepository.save(recipeItem);
                 }
             } catch (Exception e){
                 e.printStackTrace();
