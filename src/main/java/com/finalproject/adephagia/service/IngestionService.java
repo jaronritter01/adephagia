@@ -2,6 +2,7 @@ package com.finalproject.adephagia.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finalproject.adephagia.dao.FoodItem;
+import com.finalproject.adephagia.dao.LookupImge;
 import com.finalproject.adephagia.dao.Recipe;
 import com.finalproject.adephagia.dao.RecipeItem;
 import com.finalproject.adephagia.dto.IngestionItem;
@@ -19,6 +20,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -93,10 +95,23 @@ public class IngestionService {
         return src;
     }
 
-    public String findPic(String lookingString) {
+    public LookupImge findPic(String lookingString) {
         System.out.println(lookingString);
+        LookupImge li = new LookupImge();
         String[] lookingStringArr = lookingString.trim().replace(",", "").split(" ");
-        for (String ing : lookingStringArr){
+        List<String> lookingList = new ArrayList<>();
+        String noSpaceString = "";
+        if (!lookingString.equals(lookingString.replace(" ", ""))) {
+            lookingList.add(lookingString.replace(" ", ""));
+            noSpaceString = lookingString.replace(" ", "");
+        }
+        for (String img : lookingStringArr){
+            lookingList.add(img);
+            lookingList.add(Pluralize.pluralize(img, 2));
+        }
+
+        for (String ing : lookingList){
+            System.out.println("img: " +ing);
             String url = String.format("https://www.themealdb.com/images/ingredients/%s.png", ing);
             try {
                 HttpRequest request = HttpRequest.newBuilder()
@@ -106,15 +121,21 @@ public class IngestionService {
                 HttpResponse<String> response = HttpClient.newHttpClient().send(request,
                         HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
-                    return url;
+                    li.setUrl(url);
+                    if (ing.equals(noSpaceString)){
+                        li.setNoSpaceName(noSpaceString);
+                    }
+                    return li;
                 }
             } catch (Exception e) {
-                return "";
+                li.setUrl("");
+                return li;
             }
         }
 
         // Last resort to a scrape
-        return longImageLookup(lookingString);
+        li.setUrl(longImageLookup(lookingString));
+        return li;
     }
 
     public void createAndSaveFoodItems(IngestionItem ingestionItem, Recipe recipe){
@@ -123,8 +144,18 @@ public class IngestionService {
                 String ingredientName = (String) ingestionItem.getClass()
                         .getDeclaredField("strIngredient" + i).get(ingestionItem);
                 if (ingredientName != null && !ingredientName.equals("")) {
-                    ingredientName = ingredientName.toLowerCase();
+                    ingredientName = Pluralize.pluralize(ingredientName.toLowerCase(), 1);
                     Optional<FoodItem> item = foodItemRepository.findFoodItemsByName(ingredientName);
+                    // First try to find the original item
+                    if (item.isEmpty()) {
+                        // if you can't find it, try with all the spaces removed
+                        Optional<FoodItem> potentialItem =
+                                foodItemRepository.findFoodItemsByName(ingredientName.replace(" ", ""));
+                        // if you still can't find it, just use the original one
+                        if (potentialItem.isPresent()){
+                            item = potentialItem;
+                        }
+                    }
                     FoodItem savedItem;
                     // If the item does not exist create a new food item
                     if (item.isEmpty()){
@@ -133,10 +164,13 @@ public class IngestionService {
                                 .name(ingredientName)
                                 .reusable(true)
                                 .build();
+                        LookupImge imageUrl = findPic(ingredientName);
+                        if (imageUrl.getNoSpaceName() != null) {
+                            foodItem.setName(imageUrl.getNoSpaceName());
+                        }
                         // Find a pic and description
-                        String imageUrl = findPic(ingredientName);
-                        foodItem.setPicUrl(imageUrl);
-                        System.out.println(imageUrl);
+                        foodItem.setPicUrl(imageUrl.getUrl());
+                        System.out.println(foodItem.getPicUrl());
                         //save the item
                         savedItem = foodItemRepository.save(foodItem);
                     } else {
