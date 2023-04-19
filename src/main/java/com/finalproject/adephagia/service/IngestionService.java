@@ -23,10 +23,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class IngestionService {
@@ -70,6 +67,56 @@ public class IngestionService {
         });
     }
 
+    private String longImageLookup(String ingredientName) {
+        System.setProperty("webdriver.chrome.driver", "src\\main\\java\\com\\finalproject\\adephagia\\drivers\\chromedriver.exe");
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--headless");
+        WebDriver driver = new ChromeDriver(options);
+        // Open Google
+        driver.get("https://www.google.com");
+        // Search the item
+        driver.findElement(By.className("gLFyf")).sendKeys(SEARCH_CONSTANT + ingredientName);
+        driver.findElement(By.className("gLFyf")).sendKeys(Keys.RETURN);
+        // Click Images
+        driver.findElement(By.xpath("//*[text()='Images']")).click();
+        driver.findElement(By.cssSelector("div.islrc img")).click();
+
+        List<WebElement> elements = driver
+                .findElements(By.xpath("//img[contains(@data-src,\"http\")]"));
+
+        String src = elements.get(0).getAttribute("data-src");
+
+        // Close the driver
+        driver.quit();
+        //Set the url
+        return src;
+    }
+
+    public String findPic(String lookingString) {
+        System.out.println(lookingString);
+        String[] lookingStringArr = lookingString.trim().replace(",", "").split(" ");
+        for (String ing : lookingStringArr){
+            String url = String.format("https://www.themealdb.com/images/ingredients/%s.png", ing);
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .method("GET", HttpRequest.BodyPublishers.noBody())
+                        .build();
+                HttpResponse<String> response = HttpClient.newHttpClient().send(request,
+                        HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() == 200) {
+                    return url;
+                }
+            } catch (Exception e) {
+                return "";
+            }
+        }
+
+        // Last resort to a scrape
+        return longImageLookup(lookingString);
+    }
+
     public void createAndSaveFoodItems(IngestionItem ingestionItem, Recipe recipe){
         for (int i = 1; i <= 20; i++){
             try {
@@ -87,10 +134,7 @@ public class IngestionService {
                                 .reusable(true)
                                 .build();
                         // Find a pic and description
-                        String name = foodItem.getName().toLowerCase()
-                                .trim().replace(" ", "-");
-                        String imageUrl =
-                                String.format("https://www.themealdb.com/images/ingredients/%s-small.png", name);
+                        String imageUrl = findPic(ingredientName);
                         foodItem.setPicUrl(imageUrl);
                         System.out.println(imageUrl);
                         //save the item
