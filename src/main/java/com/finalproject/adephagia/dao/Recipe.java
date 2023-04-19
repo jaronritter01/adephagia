@@ -12,7 +12,7 @@ public class Recipe {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String name;
-    @Column(length = 2048)
+    @Column(length = 4096)
     private String description;
     @Transient
     private Float avgRating;

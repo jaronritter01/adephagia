@@ -23,7 +23,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -68,32 +70,6 @@ public class IngestionService {
         });
     }
 
-    private void findPicAndDescription(String ingredientName, FoodItem foodItem) {
-        System.setProperty("webdriver.chrome.driver", "src\\main\\java\\com\\finalproject\\adephagia\\drivers\\chromedriver.exe");
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--remote-allow-origins=*");
-        options.addArguments("--headless");
-        WebDriver driver = new ChromeDriver(options);
-        // Open Google
-        driver.get("https://www.google.com");
-        // Search the item
-        driver.findElement(By.className("gLFyf")).sendKeys(SEARCH_CONSTANT + ingredientName);
-        driver.findElement(By.className("gLFyf")).sendKeys(Keys.RETURN);
-        // Click Images
-        driver.findElement(By.xpath("//*[text()='Images']")).click();
-        driver.findElement(By.cssSelector("div.islrc img")).click();
-
-        List<WebElement> elements = driver
-                .findElements(By.xpath("//img[contains(@data-src,\"http\")]"));
-
-        String src = elements.get(0).getAttribute("data-src");
-
-        // Close the driver
-        driver.quit();
-        //Set the url
-        foodItem.setPicUrl(src);
-    }
-
     public void createAndSaveFoodItems(IngestionItem ingestionItem, Recipe recipe){
         for (int i = 1; i <= 20; i++){
             try {
@@ -111,7 +87,12 @@ public class IngestionService {
                                 .reusable(true)
                                 .build();
                         // Find a pic and description
-                        findPicAndDescription(ingredientName, foodItem);
+                        String name = foodItem.getName().toLowerCase()
+                                .trim().replace(" ", "-");
+                        String imageUrl =
+                                String.format("https://www.themealdb.com/images/ingredients/%s-small.png", name);
+                        foodItem.setPicUrl(imageUrl);
+                        System.out.println(imageUrl);
                         //save the item
                         savedItem = foodItemRepository.save(foodItem);
                     } else {
