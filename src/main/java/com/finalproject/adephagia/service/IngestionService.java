@@ -8,10 +8,12 @@ import com.finalproject.adephagia.dao.RecipeItem;
 import com.finalproject.adephagia.dto.IngestionItem;
 import com.finalproject.adephagia.dto.InitialRequestItem;
 import com.finalproject.adephagia.dto.Measurements;
+import com.finalproject.adephagia.dto.UnitAggRows;
 import com.finalproject.adephagia.repository.FoodItemRepository;
 import com.finalproject.adephagia.repository.RecipeItemRepository;
 import com.finalproject.adephagia.repository.RecipeRepository;
 import com.finalproject.adephagia.util.*;
+import jakarta.transaction.Transactional;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
@@ -49,24 +51,81 @@ public class IngestionService {
 
     public void ingest (){
         // Need to loop for each letter
-        Optional<InitialRequestItem> data = getAndSerializeData(alphabet.get(1));
-        data.ifPresent(initialRequestItem -> {
-            // get the meals returned
-            List<IngestionItem> recipes = initialRequestItem.getMeals();
-            recipes.forEach(recipe -> {
-                Recipe recipeToBeSaved = new RecipeBuilder()
-                        .name(recipe.getStrMeal().trim())
-                        .description(recipe.getStrInstructions().trim())
-                        .isPublic(true)
-                        .picId(recipe.getStrMealThumb())
-                        .build();
+//        Optional<InitialRequestItem> data = getAndSerializeData(alphabet.get(1));
+//        data.ifPresent(initialRequestItem -> {
+//            // get the meals returned
+//            List<IngestionItem> recipes = initialRequestItem.getMeals();
+//            recipes.forEach(recipe -> {
+//                Recipe recipeToBeSaved = new RecipeBuilder()
+//                        .name(recipe.getStrMeal().trim())
+//                        .description(recipe.getStrInstructions().trim())
+//                        .isPublic(true)
+//                        .picId(recipe.getStrMealThumb())
+//                        .build();
+//
+//                // save recipe
+//                recipeRepository.save(recipeToBeSaved);
+//                // Create FoodItems
+//                createAndSaveFoodItems(recipe, recipeToBeSaved);
+//            });
+//        });
 
-                // save recipe
-                recipeRepository.save(recipeToBeSaved);
-                // Create FoodItems
-                createAndSaveFoodItems(recipe, recipeToBeSaved);
-            });
+        // Reconcile The recipe Items
+        reconcileRecipeItems();
+    }
+
+    @Transactional
+    private void reconcileRecipeItems() {
+        List<Recipe> recipesToRemove = new ArrayList<>();
+        // get food_items list
+        List<FoodItem> foodItems = foodItemRepository.findAll();
+        // for each food item
+        foodItems.forEach(foodItem -> {
+            // get the recipe items for it
+            List<RecipeItem> recipeItems = recipeItemRepository.findByFoodItemId(foodItem.getId());
+            // find all the different units
+            List<UnitAggRows> unitFrequencyList = recipeItemRepository.getUniqueUnitsAndCounts(foodItem.getId());
+            // find the most frequently used unit
+            String mostFreqUnit = findMostFrequentUnit(unitFrequencyList);
+            // set the type to the most freq unit type
+            foodItem.setUnitType(ConversionUtils.getUnitType(mostFreqUnit));
+            // Save food_item
+            foodItemRepository.save(foodItem);
+            // for each non-frequent recipe_item
+            for (RecipeItem recipeItem : recipeItems) {
+                // if You're trying to convert to or from default, delete the recipe
+                boolean convertFromDefault = !mostFreqUnit.equals("default")
+                        && recipeItem.getFoodItem().getUnitType() == Unit.UNIT_TYPE.NOT_LISTED;
+                boolean convertToDefault = mostFreqUnit.equals("default")
+                        && recipeItem.getFoodItem().getUnitType() != Unit.UNIT_TYPE.NOT_LISTED;
+                if (convertToDefault || convertFromDefault) {
+                    // Delete the recipe as there is no standard way to convert to or from default
+                    recipesToRemove.add(recipeItem.getRecipe());
+                    break;
+                }
+
+                // if the recipe items unit is different from the most common one
+                if (!recipeItem.getMeasurementUnit().equals(mostFreqUnit)) {
+                    System.out.println(recipeItem.getQuantity() + " "  + recipeItem.getMeasurementUnit());
+                    // convert non-freq units to the most frequent units
+                    ConversionUtils.convertRecipeItem(recipeItem, mostFreqUnit);
+                    System.out.println(recipeItem.getQuantity() + " "  + recipeItem.getMeasurementUnit());
+                    recipeItemRepository.save(recipeItem);
+                }
+            }
         });
+    }
+
+    private String findMostFrequentUnit(List<UnitAggRows> unitList) {
+        String unit = "";
+        int count = 0;
+        for (UnitAggRows row : unitList) {
+            if (row.getCount() > count) {
+                count = row.getCount();
+                unit = row.getUnitType();
+            }
+        }
+        return unit;
     }
 
     private String longImageLookup(String ingredientName) {
@@ -92,7 +151,10 @@ public class IngestionService {
         // Close the driver
         driver.quit();
         //Set the url
-        return src;
+        if (src.length() <= 2048) {
+            return src;
+        }
+        return null;
     }
 
     public LookupImge findPic(String lookingString) {

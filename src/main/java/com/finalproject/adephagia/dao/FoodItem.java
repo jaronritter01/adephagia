@@ -1,5 +1,6 @@
 package com.finalproject.adephagia.dao;
 
+import com.finalproject.adephagia.util.Unit;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -18,4 +19,5 @@ public class FoodItem {
     private boolean reusable;
     @Column(length = 2048)
     private String picUrl;
+    private Unit.UNIT_TYPE unitType;
 }
