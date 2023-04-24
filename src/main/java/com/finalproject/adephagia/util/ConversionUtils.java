@@ -4,6 +4,8 @@ import com.finalproject.adephagia.dao.RecipeItem;
 import com.finalproject.adephagia.dto.Measurements;
 import jakarta.transaction.Transactional;
 
+import java.util.Random;
+
 public class ConversionUtils {
     private static final VolumetricUnit volumetricUnit = VolumetricUnit.DEFAULT;
     private static final LengthUnit lengthUnit = LengthUnit.DEFAULT;
@@ -53,7 +55,13 @@ public class ConversionUtils {
 
     @Transactional
     public static void convertRecipeItem(RecipeItem recipeItem, String mostFreqUnit) {
+        float min = 0.0F;
+        float max = 1000.0F;
+        Random random = new Random();
         if (recipeItem.getMeasurementUnit().equals("default")) {
+            recipeItem.setMeasurementUnit(mostFreqUnit);
+            Float conversionValue = min + random.nextFloat() * (max - min);
+            recipeItem.setQuantity(conversionValue);
             return;
         }
         // This should really only apply for volume vs mass units

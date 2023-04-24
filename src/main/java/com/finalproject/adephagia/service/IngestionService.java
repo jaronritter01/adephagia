@@ -51,24 +51,24 @@ public class IngestionService {
 
     public void ingest (){
         // Need to loop for each letter
-//        Optional<InitialRequestItem> data = getAndSerializeData(alphabet.get(1));
-//        data.ifPresent(initialRequestItem -> {
-//            // get the meals returned
-//            List<IngestionItem> recipes = initialRequestItem.getMeals();
-//            recipes.forEach(recipe -> {
-//                Recipe recipeToBeSaved = new RecipeBuilder()
-//                        .name(recipe.getStrMeal().trim())
-//                        .description(recipe.getStrInstructions().trim())
-//                        .isPublic(true)
-//                        .picId(recipe.getStrMealThumb())
-//                        .build();
-//
-//                // save recipe
-//                recipeRepository.save(recipeToBeSaved);
-//                // Create FoodItems
-//                createAndSaveFoodItems(recipe, recipeToBeSaved);
-//            });
-//        });
+        Optional<InitialRequestItem> data = getAndSerializeData(alphabet.get(1));
+        data.ifPresent(initialRequestItem -> {
+            // get the meals returned
+            List<IngestionItem> recipes = initialRequestItem.getMeals();
+            recipes.forEach(recipe -> {
+                Recipe recipeToBeSaved = new RecipeBuilder()
+                        .name(recipe.getStrMeal().trim())
+                        .description(recipe.getStrInstructions().trim())
+                        .isPublic(true)
+                        .picId(recipe.getStrMealThumb())
+                        .build();
+
+                // save recipe
+                recipeRepository.save(recipeToBeSaved);
+                // Create FoodItems
+                createAndSaveFoodItems(recipe, recipeToBeSaved);
+            });
+        });
 
         // Reconcile The recipe Items
         reconcileRecipeItems();
@@ -76,7 +76,7 @@ public class IngestionService {
 
     @Transactional
     private void reconcileRecipeItems() {
-        List<Recipe> recipesToRemove = new ArrayList<>();
+        //List<Recipe> recipesToRemove = new ArrayList<>();
         // get food_items list
         List<FoodItem> foodItems = foodItemRepository.findAll();
         // for each food item
@@ -93,17 +93,6 @@ public class IngestionService {
             foodItemRepository.save(foodItem);
             // for each non-frequent recipe_item
             for (RecipeItem recipeItem : recipeItems) {
-                // if You're trying to convert to or from default, delete the recipe
-                boolean convertFromDefault = !mostFreqUnit.equals("default")
-                        && recipeItem.getFoodItem().getUnitType() == Unit.UNIT_TYPE.NOT_LISTED;
-                boolean convertToDefault = mostFreqUnit.equals("default")
-                        && recipeItem.getFoodItem().getUnitType() != Unit.UNIT_TYPE.NOT_LISTED;
-                if (convertToDefault || convertFromDefault) {
-                    // Delete the recipe as there is no standard way to convert to or from default
-                    recipesToRemove.add(recipeItem.getRecipe());
-                    break;
-                }
-
                 // if the recipe items unit is different from the most common one
                 if (!recipeItem.getMeasurementUnit().equals(mostFreqUnit)) {
                     System.out.println(recipeItem.getQuantity() + " "  + recipeItem.getMeasurementUnit());
