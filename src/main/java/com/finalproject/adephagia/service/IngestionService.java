@@ -95,10 +95,8 @@ public class IngestionService {
             for (RecipeItem recipeItem : recipeItems) {
                 // if the recipe items unit is different from the most common one
                 if (!recipeItem.getMeasurementUnit().equals(mostFreqUnit)) {
-                    System.out.println(recipeItem.getQuantity() + " "  + recipeItem.getMeasurementUnit());
                     // convert non-freq units to the most frequent units
                     ConversionUtils.convertRecipeItem(recipeItem, mostFreqUnit);
-                    System.out.println(recipeItem.getQuantity() + " "  + recipeItem.getMeasurementUnit());
                     recipeItemRepository.save(recipeItem);
                 }
             }
@@ -147,7 +145,6 @@ public class IngestionService {
     }
 
     public LookupImge findPic(String lookingString) {
-        System.out.println(lookingString);
         LookupImge li = new LookupImge();
         String[] lookingStringArr = lookingString.trim().replace(",", "").split(" ");
         List<String> lookingList = new ArrayList<>();
@@ -162,7 +159,6 @@ public class IngestionService {
         }
 
         for (String ing : lookingList){
-            System.out.println("img: " +ing);
             String url = String.format("https://www.themealdb.com/images/ingredients/%s.png", ing);
             try {
                 HttpRequest request = HttpRequest.newBuilder()
@@ -221,7 +217,6 @@ public class IngestionService {
                         }
                         // Find a pic and description
                         foodItem.setPicUrl(imageUrl.getUrl());
-                        System.out.println(foodItem.getPicUrl());
                         //save the item
                         savedItem = foodItemRepository.save(foodItem);
                     } else {
