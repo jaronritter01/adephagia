@@ -8,10 +8,12 @@ import com.finalproject.adephagia.dao.RecipeItem;
 import com.finalproject.adephagia.dto.IngestionItem;
 import com.finalproject.adephagia.dto.InitialRequestItem;
 import com.finalproject.adephagia.dto.Measurements;
+import com.finalproject.adephagia.dto.UnitAggRows;
 import com.finalproject.adephagia.repository.FoodItemRepository;
 import com.finalproject.adephagia.repository.RecipeItemRepository;
 import com.finalproject.adephagia.repository.RecipeRepository;
 import com.finalproject.adephagia.util.*;
+import jakarta.transaction.Transactional;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
@@ -67,6 +69,50 @@ public class IngestionService {
                 createAndSaveFoodItems(recipe, recipeToBeSaved);
             });
         });
+
+        // Reconcile The recipe Items
+        reconcileRecipeItems();
+    }
+
+    @Transactional
+    private void reconcileRecipeItems() {
+        //List<Recipe> recipesToRemove = new ArrayList<>();
+        // get food_items list
+        List<FoodItem> foodItems = foodItemRepository.findAll();
+        // for each food item
+        foodItems.forEach(foodItem -> {
+            // get the recipe items for it
+            List<RecipeItem> recipeItems = recipeItemRepository.findByFoodItemId(foodItem.getId());
+            // find all the different units
+            List<UnitAggRows> unitFrequencyList = recipeItemRepository.getUniqueUnitsAndCounts(foodItem.getId());
+            // find the most frequently used unit
+            String mostFreqUnit = findMostFrequentUnit(unitFrequencyList);
+            // set the type to the most freq unit type
+            foodItem.setUnitType(ConversionUtils.getUnitType(mostFreqUnit));
+            // Save food_item
+            foodItemRepository.save(foodItem);
+            // for each non-frequent recipe_item
+            for (RecipeItem recipeItem : recipeItems) {
+                // if the recipe items unit is different from the most common one
+                if (!recipeItem.getMeasurementUnit().equals(mostFreqUnit)) {
+                    // convert non-freq units to the most frequent units
+                    ConversionUtils.convertRecipeItem(recipeItem, mostFreqUnit);
+                    recipeItemRepository.save(recipeItem);
+                }
+            }
+        });
+    }
+
+    private String findMostFrequentUnit(List<UnitAggRows> unitList) {
+        String unit = "";
+        int count = 0;
+        for (UnitAggRows row : unitList) {
+            if (row.getCount() > count) {
+                count = row.getCount();
+                unit = row.getUnitType();
+            }
+        }
+        return unit;
     }
 
     private String longImageLookup(String ingredientName) {
@@ -92,11 +138,13 @@ public class IngestionService {
         // Close the driver
         driver.quit();
         //Set the url
-        return src;
+        if (src.length() <= 2048) {
+            return src;
+        }
+        return null;
     }
 
     public LookupImge findPic(String lookingString) {
-        System.out.println(lookingString);
         LookupImge li = new LookupImge();
         String[] lookingStringArr = lookingString.trim().replace(",", "").split(" ");
         List<String> lookingList = new ArrayList<>();
@@ -111,7 +159,6 @@ public class IngestionService {
         }
 
         for (String ing : lookingList){
-            System.out.println("img: " +ing);
             String url = String.format("https://www.themealdb.com/images/ingredients/%s.png", ing);
             try {
                 HttpRequest request = HttpRequest.newBuilder()
@@ -170,7 +217,6 @@ public class IngestionService {
                         }
                         // Find a pic and description
                         foodItem.setPicUrl(imageUrl.getUrl());
-                        System.out.println(foodItem.getPicUrl());
                         //save the item
                         savedItem = foodItemRepository.save(foodItem);
                     } else {
