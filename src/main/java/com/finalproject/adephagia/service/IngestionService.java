@@ -116,7 +116,8 @@ public class IngestionService {
     }
 
     private String longImageLookup(String ingredientName) {
-        System.setProperty("webdriver.chrome.driver", "src\\main\\java\\com\\finalproject\\adephagia\\drivers\\chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver",
+                "src/main/java/com/finalproject/adephagia/drivers/chromedriver");
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
         options.addArguments("--headless");
