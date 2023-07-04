@@ -4,8 +4,6 @@ import com.finalproject.adephagia.util.Unit;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.sql.Blob;
-
 @Data
 @Entity
 @Table(name = "food_items")

@@ -22,7 +22,6 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -49,6 +48,10 @@ public class IngestionService {
         this.foodItemRepository = foodItemRepository;
     }
 
+    /**
+    Used to populate a repository of a set of recipe data (as of now it only check as subset of URL)
+    InitialItemRequest has a set of IngestionItems are looped over and built into Recipe from Recipe Builder
+    */
     public void ingest (){
         // Need to loop for each letter
         Optional<InitialRequestItem> data = getAndSerializeData(alphabet.get(1));
@@ -74,6 +77,10 @@ public class IngestionService {
         reconcileRecipeItems();
     }
 
+    /**
+     * Gets all food items within the repository and loops through all
+     * Each food items unit type is set to the most frequent in recipes, and so are all of its recpie items
+     */
     @Transactional
     private void reconcileRecipeItems() {
         //List<Recipe> recipesToRemove = new ArrayList<>();
@@ -103,6 +110,11 @@ public class IngestionService {
         });
     }
 
+    /**
+     *
+     * @param unitList a list of the units of the respective recipe items of a food
+     * @return String representing the most common unit that represents the food
+     */
     private String findMostFrequentUnit(List<UnitAggRows> unitList) {
         String unit = "";
         int count = 0;
@@ -115,6 +127,11 @@ public class IngestionService {
         return unit;
     }
 
+    /**
+     * Used to web-scrape for a specific image of ingredient
+     * @param ingredientName the string name of an ingredients name that's image that is desired to be found
+     * @return String of the url of the source of the image
+     */
     private String longImageLookup(String ingredientName) {
         System.setProperty("webdriver.chrome.driver", "src\\main\\java\\com\\finalproject\\adephagia\\drivers\\chromedriver.exe");
         ChromeOptions options = new ChromeOptions();
@@ -144,21 +161,29 @@ public class IngestionService {
         return null;
     }
 
+    /**
+     * Used to lookup as a image, it then looks for the said image on a themealdb/images/ingredients
+     * @param lookingString string that is, formated to be on a URL, then searched at the by appending to end of URL
+     * @return LookupImge which contains the image's Url
+     */
     public LookupImge findPic(String lookingString) {
         LookupImge li = new LookupImge();
         String[] lookingStringArr = lookingString.trim().replace(",", "").split(" ");
         List<String> lookingList = new ArrayList<>();
         String noSpaceString = "";
+        //if the lookingString contains a whitespace?
         if (!lookingString.equals(lookingString.replace(" ", ""))) {
             lookingList.add(lookingString.replace(" ", ""));
             noSpaceString = lookingString.replace(" ", "");
         }
+        //for each img string, it is added to lookingList and another with a pluralized form of 2
         for (String img : lookingStringArr){
             lookingList.add(img);
             lookingList.add(Pluralize.pluralize(img, 2));
         }
 
         for (String ing : lookingList){
+            //looking for the string at this url as a png, for all strings in the lookingList
             String url = String.format("https://www.themealdb.com/images/ingredients/%s.png", ing);
             try {
                 HttpRequest request = HttpRequest.newBuilder()
@@ -167,6 +192,7 @@ public class IngestionService {
                         .build();
                 HttpResponse<String> response = HttpClient.newHttpClient().send(request,
                         HttpResponse.BodyHandlers.ofString());
+                //If the response is OK then assign respective values to return
                 if (response.statusCode() == 200) {
                     li.setUrl(url);
                     if (ing.equals(noSpaceString)){
@@ -185,12 +211,22 @@ public class IngestionService {
         return li;
     }
 
+    /**
+     * Will Index through all of the ingredients within the ingestion item that is passed in
+     * Will try and retrieve food item that exists within the foodItemRepository, or create new one if not there
+     * Makes a recipeItem from the food item, for the specific recipe, and will standardize the measurement of the recipe item
+     * @param ingestionItem which is a specific item part of the initial ingest call
+     * @param recipe build or representing the data of the ingestionItem
+    */
     public void createAndSaveFoodItems(IngestionItem ingestionItem, Recipe recipe){
+        //loops to 20, as it is max amount of ingredients that are available in an ingestionItem
         for (int i = 1; i <= 20; i++){
             try {
+                //getting ingredient based on index in the IngestionItem
                 String ingredientName = (String) ingestionItem.getClass()
                         .getDeclaredField("strIngredient" + i).get(ingestionItem);
                 if (ingredientName != null && !ingredientName.equals("")) {
+                    //String with amount, that is standardized
                     ingredientName = Pluralize.pluralize(ingredientName.toLowerCase(), 1);
                     Optional<FoodItem> item = foodItemRepository.findFoodItemsByName(ingredientName);
                     // First try to find the original item
@@ -211,6 +247,7 @@ public class IngestionService {
                                 .name(ingredientName)
                                 .reusable(true)
                                 .build();
+                        //image obtained from mealdb or via webscrap
                         LookupImge imageUrl = findPic(ingredientName);
                         if (imageUrl.getNoSpaceName() != null) {
                             foodItem.setName(imageUrl.getNoSpaceName());
@@ -223,13 +260,13 @@ public class IngestionService {
                         // set the item
                         savedItem = item.get();
                     }
-                    // Get the Measure
+                    // Get the Measure for same indexed ingredient
                     String ingredientMeasure = (String) ingestionItem.getClass()
                             .getDeclaredField("strMeasure" + i).get(ingestionItem);
                     RecipeItem recipeItem;
                     try {
                         Measurements measurements = MeasureParseUtils.parseMeasurement(ingredientMeasure);
-                        //create the recipe item and associate it with the recipe
+                        //create the recipe item and associate it with the recipe, using food item that was created/pulled
                         Measurements convertMeasurements = ConversionUtils.convertToStandardUnit(
                                 measurements.getUnit(), measurements.getQuantity()
                         );
@@ -252,6 +289,11 @@ public class IngestionService {
         }
     }
 
+    /**
+     * Looks for a recipe based of a URL and an appended letter for a subset of URL (api call)
+     * @param letter that is passed in an appended to end of consumptionUrl which builds an HTTP request out of
+     * @returns Optional of InitialRequestItem that is populated via response of HTTP request
+     */
     private Optional<InitialRequestItem> getAndSerializeData(String letter) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
